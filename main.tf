@@ -1,17 +1,17 @@
 #---------ssh-------
-# 1. יצירת המפתח הפרטי בתוך Terraform
+
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-# 2. יצירת Key Pair ב-AWS באמצעות המפתח הציבורי שנוצר למעלה
+
 resource "aws_key_pair" "deployer" {
   key_name   = "builder-key"
   public_key = tls_private_key.ec2_key.public_key_openssh
 }
 
-# 3. שמירת המפתח הפרטי כקובץ מקומי במחשב שלך (כדי שתוכל להשתמש בו ב-SSH)
+
 resource "local_file" "ssh_key_file" {
   filename        = "${path.module}/builder-key.pem"
   content         = tls_private_key.ec2_key.private_key_pem
@@ -20,7 +20,7 @@ resource "local_file" "ssh_key_file" {
 
 #-----------vpc----------
 
-#יצירת vpc
+
 resource "aws_vpc" "public_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -31,7 +31,7 @@ resource "aws_vpc" "public_vpc" {
   }
 }
 
-# 2. יצירת רשת משנה ציבורית (Public Subnet)
+
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.public_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -43,7 +43,7 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 /*
-# 3. יצירת רשת משנה פרטית (Private Subnet)
+
 # resource "aws_subnet" "private_subnet" {
 #   vpc_id            = aws_vpc.public_vpc.id
 #   cidr_block        = "10.0.2.0/24"
@@ -54,7 +54,7 @@ resource "aws_subnet" "public_subnet" {
 #   }
 # }
 */
-# 4. יצירת שער אינטרנט (Internet Gateway) לחיבור הרשת הציבורית לעולם
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.public_vpc.id
 
@@ -63,7 +63,7 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# 5. יצירת טבלת ניתוב (Route Table) עבור הרשת הציבורית
+
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.public_vpc.id
 
@@ -77,7 +77,7 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-# 6. שיוך טבלת הניתוב לרשת הציבורית
+
 resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_rt.id
