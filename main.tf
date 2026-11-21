@@ -119,11 +119,13 @@ resource "aws_security_group" "builder_sg" {
 #------------ec2-----------
 
 resource "aws_instance" "builder" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  vpc_security_group_ids = [aws_security_group.builder_sg.id]
-  subnet_id              = aws_subnet.public_subnet.id
-  key_name               = aws_key_pair.deployer.key_name
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  vpc_security_group_ids      = [aws_security_group.builder_sg.id]
+  subnet_id                   = aws_subnet.public_subnet.id
+  key_name                    = aws_key_pair.deployer.key_name
+  user_data                   = file("${path.module}/user_data.sh")
+  user_data_replace_on_change = true
   tags = {
     Name = var.instance_name
   }
