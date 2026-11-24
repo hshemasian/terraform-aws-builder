@@ -16,7 +16,7 @@ resource "aws_key_pair" "deployer" {
 
 # שומר את המפתח הפרטי אצלנו במחשב המקומי עם הרשאת קריאה לבעלים בלבד (0400 - חובה ב-SSH)
 resource "local_file" "ssh_key_file" {
-  filename = "${path.root}/builder-key.pem"
+  filename        = "${path.root}/builder-key.pem"
   content         = tls_private_key.ec2_key.private_key_pem
   file_permission = "0400"
 }
@@ -61,6 +61,14 @@ resource "aws_security_group" "builder_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # תעבורה נכנסת: גישה לממשק הווב של ArgoCD על פורט NodePort 30443
+  ingress {
+    description = "Allow ArgoCD UI (HTTPS)"
+    from_port   = 30443
+    to_port     = 30443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # ==========================================
@@ -68,13 +76,13 @@ resource "aws_security_group" "builder_sg" {
 # ==========================================
 
 resource "aws_instance" "builder" {
-  ami                         = var.ami_id                          # מערכת ההפעלה
-  instance_type               = var.instance_type                   # גודל/סוג השרת
-  vpc_security_group_ids      = [aws_security_group.builder_sg.id]  # שיוך חומת האש
-  subnet_id = var.public_subnet_id         # מיקום השרת בתוך הרשת הציבורית
-  key_name                    = aws_key_pair.deployer.key_name      # שיוך מפתח ה-SSH הציבורי
-  user_data = file("${path.root}/user_data.sh") # קריאת סקריפט ההתקנה החיצוני
-  user_data_replace_on_change = true                                # יצירת השרת מחדש אם סקריפט ה-user_data שונה
+  ami                         = var.ami_id                         # מערכת ההפעלה
+  instance_type               = var.instance_type                  # גודל/סוג השרת
+  vpc_security_group_ids      = [aws_security_group.builder_sg.id] # שיוך חומת האש
+  subnet_id                   = var.public_subnet_id               # מיקום השרת בתוך הרשת הציבורית
+  key_name                    = aws_key_pair.deployer.key_name     # שיוך מפתח ה-SSH הציבורי
+  user_data                   = file("${path.root}/user_data.sh")  # קריאת סקריפט ההתקנה החיצוני
+  user_data_replace_on_change = true                               # יצירת השרת מחדש אם סקריפט ה-user_data שונה
 
   tags = {
     Name = var.instance_name

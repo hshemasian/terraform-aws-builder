@@ -18,7 +18,7 @@ variable "vpc_id" {
 variable "instance_type" {
   description = "EC2 Instance type"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 # מזהה תמונת מערכת ההפעלה (AMI) של Ubuntu באזור us-east-1
